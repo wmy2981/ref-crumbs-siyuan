@@ -35,7 +35,7 @@
   "disabledInPublish": false,
   "displayName": {
     "default": "Ref Crumbs",
-    "zh-CN": "引用面包屑"
+    "zh-CN": "引用块搜索列表显示面包屑"
   },
   "description": {
     "default": "Show heading breadcrumbs (h2-h6) of each block in the block reference search list",
