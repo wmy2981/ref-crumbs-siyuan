@@ -10,7 +10,7 @@ A SiYuan plugin that shows the heading breadcrumb chain (h2 → h6) of each bloc
 - When a result item itself is a heading block, the missing terminal name is filled in automatically from the block text
 - Supports encrypted notebooks (`notebook` parameter is passed through)
 - Pure frontend: powered by the official API `/api/block/getBlockBreadcrumb`; no kernel changes, no SQL permission required
-- Performance guards: 4-way request pool + per-block result cache
+- Performance guards: 4-way request pool + per-block result cache; rebuilt lists reuse cached results, and a single failed request only skips that item
 
 ## The Problem
 
@@ -29,10 +29,6 @@ Team Notes/Product/Milestone Review/  ## Milestone Review · ### v0.2 Launch
 ```
 
 So you can see at a glance which section each reference candidate actually lives in.
-
-## Screenshots
-
-![preview](assets/preview.png)
 
 ## Installation
 
