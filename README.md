@@ -38,7 +38,7 @@ Search "Ref Crumbs" in the SiYuan bazaar (Settings → Bazaar → Plugins), inst
 
 ### Manual
 
-1. Copy this directory (or the contents of `dist/`) to `<workspace>/data/plugins/ref-crumbs/`
+1. Copy this directory (or the contents of `dist/`) to `<workspace>/data/plugins/ref-crumbs-siyuan/`
 2. Enable the plugin in Settings → Plugins
 
 ## Usage

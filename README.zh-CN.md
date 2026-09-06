@@ -38,7 +38,7 @@
 
 ### 手动安装
 
-1. 将本目录（或 `dist/` 内容）放入思源数据目录：`<workspace>/data/plugins/ref-crumbs/`
+1. 将本目录（或 `dist/` 内容）放入思源数据目录：`<workspace>/data/plugins/ref-crumbs-siyuan/`
 2. 在思源设置 → 插件中启用本插件
 
 ## 使用

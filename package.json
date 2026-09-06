@@ -1,5 +1,5 @@
 {
-  "name": "ref-crumbs",
+  "name": "ref-crumbs-siyuan",
   "version": "0.1.0",
   "description": "Show heading breadcrumbs (h2-h6) of each block in the block reference search list",
   "main": ".src/index.js",
