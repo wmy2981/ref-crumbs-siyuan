@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1024px; height: 768px; overflow: hidden;
+    font-family: -apple-system, "Microsoft YaHei", "Segoe UI", sans-serif; }
+  body { background: linear-gradient(160deg, #EFF4FB 0%, #F6F7F9 55%, #EDF2F9 100%);
+    padding: 0 72px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; }
+
+  .head { display: flex; align-items: baseline; margin-bottom: 40px; }
+  .logo { width: 64px; height: 64px; border-radius: 14px; background: linear-gradient(135deg, #3D7EC2, #2A5FA0);
+    display: flex; align-items: center; justify-content: center; margin-right: 20px;
+    font-size: 30px; font-weight: 700; color: #fff; }
+  .name { font-size: 38px; font-weight: 700; color: #26334A; letter-spacing: 0.5px; }
+  .name-en { font-size: 16px; color: #5B6B84; margin-left: 14px; letter-spacing: 1px; }
+  .tagline { margin-top: 10px; font-size: 15px; color: #7C8CA3; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .card { background: #fff; border-radius: 14px; padding: 24px 26px 22px;
+    box-shadow: 0 4px 18px rgba(28, 48, 90, 0.07); }
+  .card-top { display: flex; align-items: center; margin-bottom: 12px; }
+  .badge { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 700; color: #fff; margin-right: 12px;
+    background: linear-gradient(135deg, #3D7EC2, #2A5FA0); }
+  .card-title { font-size: 17px; font-weight: 600; color: #26334A; }
+  .card-desc { font-size: 13.5px; color: #6E7E96; line-height: 1.7; }
+  .demo { margin-top: 12px; background: #F3F6FB; border-radius: 8px; padding: 9px 12px;
+    font-size: 12.5px; color: #47596F; white-space: nowrap; overflow: hidden; }
+  .hash { font-weight: 600; color: #3D7EC2; }
+  .path { color: #8A97A9; }
+  .sep { color: #A8B3C2; padding: 0 4px; }
+
+  .foot { margin-top: 34px; display: flex; justify-content: space-between; align-items: center; }
+  .chips { display: flex; gap: 8px; }
+  .chip { font-size: 12px; color: #4C6491; background: #E3ECF7; border-radius: 12px; padding: 3px 12px; }
+  .ver { font-size: 12px; color: #9AA7B9; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="logo">##</div>
+    <div>
+      <div class="name">引用块搜索列表显示面包屑<span class="name-en">REF CRUMBS</span></div>
+      <div class="tagline">在思源笔记块引用（((）搜索列表中显示每个块的标题层级面包屑（h2 → h6）</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-top"><div class="badge">#</div><div class="card-title">标题层级一目了然</div></div>
+      <div class="card-desc">显示块所在的完整标题层级链，以 ##/###/#### 前缀数量表达层级，h1 自动省略</div>
+      <div class="demo"><span class="hash">##</span> 里程碑复盘 <span class="sep">·</span> <span class="hash">###</span> 第二轮迭代</div>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="badge">☰</div><div class="card-title">与文档路径并排显示</div></div>
+      <div class="card-desc">标题链追加在原有 hPath（笔记本/文档树路径）右侧，两者互不干扰、同一行对比</div>
+      <div class="demo"><span class="path">团队笔记/产品/里程碑复盘/</span>&nbsp;&nbsp;<span class="hash">##</span> 里程碑复盘 <span class="sep">·</span> <span class="hash">###</span> 第二轮迭代</div>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="badge">✎</div><div class="card-title">标题块自动补全</div></div>
+      <div class="card-desc">搜索命中标题块时自动补全末级标题文本，面包屑不再缺失末级名称</div>
+      <div class="demo"><span class="hash">###</span> 第二轮迭代</div>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="badge"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M13 2 4.5 13.5h6L10 22l8.5-11.5h-6z" fill="#fff"/></svg></div><div class="card-title">轻量无侵入</div></div>
+      <div class="card-desc">纯前端 · 官方 API /api/block/getBlockBreadcrumb · 4 路并发池与结果缓存，即时渲染不积压</div>
+      <div class="demo">无需配置，无需修改内核；SiYuan v3.6.0+ 即装即用</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="chips"><span class="chip">块引用搜索</span><span class="chip">h2-h6</span><span class="chip">即装即用</span></div>
+    <div class="ver">MIT License</div>
+  </div>
+</body>
+</html>

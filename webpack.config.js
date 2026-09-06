@@ -8,12 +8,9 @@ const ZipPlugin = require("zip-webpack-plugin");
 const pluginManifest = require("./plugin.json");
 
 const packageImagePatterns = [
-    ["icon", "icon.png"],
-    ["preview", "preview.png"],
-].flatMap(([field, legacyName]) => {
-    const fileName = pluginManifest[field] || (fs.existsSync(legacyName) ? legacyName : "");
-    return fileName ? [{from: fileName, to: "./dist/"}] : [];
-});
+    {from: "assets/icon.png", to: "./dist/icon.png"},
+    {from: "assets/preview.png", to: "./dist/preview.png"},
+].filter((pattern) => fs.existsSync(pattern.from));
 
 module.exports = (env, argv) => {
     const production = argv.mode === "production";
