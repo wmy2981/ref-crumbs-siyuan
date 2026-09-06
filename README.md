@@ -1,5 +1,7 @@
 # Ref Crumbs
 
+[简体中文](README.zh-CN.md) | English
+
 A SiYuan plugin that shows the heading breadcrumb chain (h2 → h6) of each block in the block reference (`((`) search list.
 
 ## Features
