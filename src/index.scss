@@ -1,0 +1,27 @@
+// 标题层级面包屑：追加在 hPath（文档树路径）行右侧的同一行内，
+// 与路径同字号同灰阶，层级由「#」数量表达
+.ref-crumbs__crumbs {
+  display: inline;
+  margin-left: 6px;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.ref-crumbs {
+  &__hash {
+    font-weight: 500;
+    color: var(--b3-theme-on-surface-light);
+    margin-right: 2px;
+    user-select: none;
+  }
+
+  &__name {
+    color: var(--b3-theme-on-surface-light);
+  }
+
+  &__sep {
+    color: var(--b3-theme-on-surface-light);
+    padding: 0 2px;
+    user-select: none;
+  }
+}
