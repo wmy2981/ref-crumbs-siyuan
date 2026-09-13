@@ -19,9 +19,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Release flow
 
-1. Bump `version` in `plugin.json` and `package.json` (semver, no `v` prefix) → commit → push.
-2. `npm run build`.
-3. `gh release create v<version> "package.zip"` — the tag uses the `v` prefix; bazaar checks the Latest Release.
+Releases are published by `.github/workflows/release.yml` on every push:
+
+1. Bump `version` in `plugin.json` and `package.json` (semver, no `v` prefix) → commit → push. A mismatch between the two fails the run.
+2. The workflow runs `npm ci` + `npm run build`, then compares the manifest version with the highest `v*` tag: higher → tag the commit, create the Release (notes grouped from Conventional Commits by `scripts/release-notes.mjs`, which skips merges and version-bump commits) and upload `package.zip`; equal → skip the release; lower → the run fails. Either way `package.zip` is uploaded as a build artifact.
+3. The tag uses the `v` prefix; bazaar checks the Latest Release, so no manual `npm run build` / `gh release create` is needed.
 4. First listing: PR to `siyuan-note/bazaar` that only appends `wmy2981/ref-crumbs-siyuan` to its root `plugins.txt`. Later versions need no PR: the bazaar index auto-updates every 1-3 hours by pulling new releases.
 5. If an already-listed package does not show up after a while, look for the repo under `stage-fail` label issues or check the bazaar Stage workflow logs; a common cause is a version that was not bumped in the manifest.
 
