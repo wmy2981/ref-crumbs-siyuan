@@ -1,82 +1,226 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<title>Ref Crumbs preview</title>
 <style>
+  /* 思源 daylight 主题的真实取值（app/appearance/themes/daylight/theme.css） */
+  :root {
+    --b3-theme-background: #fff;
+    --b3-theme-surface: #f6f6f6;
+    --b3-theme-surface-lighter: #e0e0e0;
+    --b3-theme-on-background: #222;
+    --b3-theme-on-surface: #5f6368;
+    --b3-theme-on-surface-light: rgba(95, 99, 104, .68);
+    --b3-list-hover: rgba(0, 0, 0, .075);
+    --b3-dialog-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+    --b3-protyle-inline-mark-background: rgb(252, 212, 126);
+    --b3-protyle-inline-mark-color: #202124;
+    --b3-font-family: Arial, "Microsoft YaHei", sans-serif;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 1024px; height: 768px; overflow: hidden;
-    font-family: -apple-system, "Microsoft YaHei", "Segoe UI", sans-serif; }
-  body { background: linear-gradient(160deg, #EFF4FB 0%, #F6F7F9 55%, #EDF2F9 100%);
-    padding: 0 72px;
+  html, body { width: 1024px; height: 768px; overflow: hidden; }
+  body {
+    font-family: var(--b3-font-family);
+    font-size: 14px;
+    color: var(--b3-theme-on-background);
+    background: linear-gradient(155deg, #F5F8FD 0%, #E9EFF8 58%, #E3EAF5 100%);
     display: flex;
-    flex-direction: column;
-    justify-content: center; }
+    align-items: center;
+    justify-content: center;
+  }
 
-  .head { display: flex; align-items: baseline; margin-bottom: 40px; }
-  .logo { width: 64px; height: 64px; border-radius: 14px; background: linear-gradient(135deg, #3D7EC2, #2A5FA0);
-    display: flex; align-items: center; justify-content: center; margin-right: 20px;
-    font-size: 30px; font-weight: 700; color: #fff; }
-  .name { font-size: 38px; font-weight: 700; color: #26334A; letter-spacing: 0.5px; }
-  .name-en { font-size: 16px; color: #5B6B84; margin-left: 14px; letter-spacing: 1px; }
-  .tagline { margin-top: 10px; font-size: 15px; color: #7C8CA3; }
+  /* ---------- 思源窗口 ---------- */
+  .window {
+    position: relative;
+    width: 960px;
+    height: 680px;
+    background: var(--b3-theme-background);
+    border: 1px solid var(--b3-theme-surface-lighter);
+    border-radius: 8px;
+    box-shadow: 0 20px 50px rgba(28, 48, 90, .18);
+    overflow: hidden;
+  }
 
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .card { background: #fff; border-radius: 14px; padding: 24px 26px 22px;
-    box-shadow: 0 4px 18px rgba(28, 48, 90, 0.07); }
-  .card-top { display: flex; align-items: center; margin-bottom: 12px; }
-  .badge { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  .titlebar {
+    height: 40px; display: flex; align-items: center; padding: 0 14px;
+    background: var(--b3-theme-surface);
+    border-bottom: 1px solid var(--b3-theme-surface-lighter);
+  }
+  .brand { display: flex; align-items: center; font-size: 12.5px; color: var(--b3-theme-on-surface); }
+  .brand-mark {
+    width: 18px; height: 18px; border-radius: 4px; margin-right: 8px;
+    background: linear-gradient(135deg, #3D7EC2, #2A5FA0);
+    color: #fff; font-size: 10px; font-weight: 700;
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px; font-weight: 700; color: #fff; margin-right: 12px;
-    background: linear-gradient(135deg, #3D7EC2, #2A5FA0); }
-  .card-title { font-size: 17px; font-weight: 600; color: #26334A; }
-  .card-desc { font-size: 13.5px; color: #6E7E96; line-height: 1.7; }
-  .demo { margin-top: 12px; background: #F3F6FB; border-radius: 8px; padding: 9px 12px;
-    font-size: 12.5px; color: #47596F; white-space: nowrap; overflow: hidden; }
-  .hash { font-weight: 600; color: #3D7EC2; }
-  .path { color: #8A97A9; }
-  .sep { color: #A8B3C2; padding: 0 4px; }
+  }
+  .titlebar .spacer { flex: 1; }
+  .toolicons { display: flex; gap: 14px; align-items: center; }
+  .toolicons svg { width: 15px; height: 15px; stroke: var(--b3-theme-on-surface-light); fill: none; stroke-width: 1.7; }
 
-  .foot { margin-top: 34px; display: flex; justify-content: space-between; align-items: center; }
-  .chips { display: flex; gap: 8px; }
-  .chip { font-size: 12px; color: #4C6491; background: #E3ECF7; border-radius: 12px; padding: 3px 12px; }
-  .ver { font-size: 12px; color: #9AA7B9; }
+  .tabbar { height: 34px; display: flex; align-items: flex-end; background: var(--b3-theme-surface);
+            border-bottom: 1px solid var(--b3-theme-surface-lighter); }
+  .tab {
+    display: flex; align-items: center; gap: 7px; height: 34px; padding: 0 16px;
+    font-size: 12.5px; color: var(--b3-theme-on-background); background: var(--b3-theme-background);
+    border-right: 1px solid var(--b3-theme-surface-lighter);
+    border-top: 1px solid var(--b3-theme-surface-lighter);
+  }
+  .tab svg { width: 13px; height: 13px; stroke: var(--b3-theme-on-surface); fill: none; stroke-width: 1.7; }
+
+  /* ---------- 编辑器正文：搜索面板浮在正文之上 ---------- */
+  .editor { position: absolute; inset: 74px 0 0 0; padding: 32px 48px 0; }
+  .protyle-title { font-size: 24px; font-weight: 600; line-height: 1.4; }
+  .editor h2 { font-size: 17px; font-weight: 600; line-height: 1.6; margin-top: 8px; }
+  .editor p { line-height: 1.9; }
+  .typing { display: flex; align-items: center; }
+  .caret { display: inline-block; width: 1.5px; height: 17px; background: #3575f0; margin-left: 1px; }
+  .editor mark { background: var(--b3-protyle-inline-mark-background); color: var(--b3-protyle-inline-mark-color); }
+
+  /* ---------- (( 引用搜索面板（.protyle-hint，尺寸与样式同思源） ---------- */
+  .hint {
+    position: absolute; left: 48px; top: 258px;
+    width: 366px; min-width: 320px; max-width: 50vw;
+    max-height: min(402px, 40vh);
+    padding: 8px 0;
+    display: flex; flex-direction: column;
+    background: var(--b3-theme-background);
+    border: 1px solid var(--b3-theme-surface-lighter);
+    border-radius: 12px;
+    box-shadow: var(--b3-dialog-shadow);
+    overflow: auto;
+  }
+  /* .b3-list-item.b3-list-item--two */
+  .hint-item {
+    width: calc(100% - 16px); margin: 1px 8px; padding: 0 4px;
+    min-height: 28px; line-height: 28px;
+    border: 0; text-align: left; background: transparent;
+    color: var(--b3-theme-on-background); font-family: inherit; font-size: 14px;
+    border-radius: 4px;
+  }
+  .hint-item--focus { background: var(--b3-list-hover); }
+  .hint-first { display: flex; align-items: center; }
+  .hint-first svg {
+    width: 16px; height: 16px; padding: 0 1px; margin-right: 4px; flex-shrink: 0;
+    stroke: var(--b3-theme-on-surface); fill: none; stroke-width: 1.6;
+  }
+  .hint-text {
+    flex: 1; word-break: break-all; overflow: hidden; text-overflow: ellipsis;
+    -webkit-line-clamp: 1; -webkit-box-orient: vertical; display: -webkit-box;
+  }
+  /* .b3-list-item__meta.b3-list-item__showall（--two 下 line-height 为 18px） */
+  .hint-meta { font-size: .75rem; line-height: 18px; word-break: break-all; color: var(--b3-theme-on-surface); }
+
+  /* 插件追加的标题层级面包屑：与 hPath 同字号同灰阶 */
+  .crumb { display: inline; margin-left: 6px; user-select: none; overflow-wrap: anywhere; }
+  .crumb-item { display: inline-block; max-width: 100%; }
+  .crumb-marker { font-weight: 500; color: var(--b3-theme-on-surface-light); margin-right: 2px; }
+  .crumb-name { color: var(--b3-theme-on-surface-light); }
+  .crumb-sep { color: var(--b3-theme-on-surface-light); padding: 0 2px; }
+
+  /* ---------- 标注（说明性叠加层，非界面的一部分） ---------- */
+  .anno {
+    position: absolute; left: 440px; width: 232px; transform: translateY(-50%);
+    padding: 12px 16px; background: #fff;
+    border: 1px solid #d6e2f7; border-radius: 10px;
+    box-shadow: 0 8px 22px rgba(28, 48, 90, .10);
+  }
+  .anno-title { font-size: 14px; font-weight: 600; color: #2A5FA0; }
+  .anno-desc { font-size: 12px; color: #6E7E96; line-height: 1.7; margin-top: 3px; }
+  .leader { position: absolute; height: 1.5px; background: #3575f0; }
+  .leader-dot { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #3575f0; }
 </style>
 </head>
 <body>
-  <div class="head">
-    <div class="logo">##</div>
-    <div>
-      <div class="name">引用块搜索列表显示面包屑<span class="name-en">REF CRUMBS</span></div>
-      <div class="tagline">在思源笔记块引用（((）搜索列表中显示每个块的标题层级面包屑（h2 → h6）</div>
+  <div class="window">
+    <div class="titlebar">
+      <div class="brand"><span class="brand-mark">#</span>产品手册</div>
+      <div class="spacer"></div>
+      <div class="toolicons">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>
+      </div>
+    </div>
+
+    <div class="tabbar">
+      <div class="tab">
+        <svg viewBox="0 0 24 24"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5"/></svg>
+        版本发布复盘
+      </div>
+    </div>
+
+    <div class="editor">
+      <div class="protyle-title">版本发布复盘</div>
+      <p>本次发布按灰度计划推进，先覆盖内部账号，再逐步放量到全量用户。</p>
+      <h2>灰度阶段</h2>
+      <p>第一轮灰度观察 24 小时，错误率与延迟均在预期范围内，未发现阻塞性问题。</p>
+      <p class="typing">第二轮迭代上线总结（<span class="caret"></span></p>
+      <p>放量到 20% 之后，重点观察接口成功率与客户端崩溃率两项指标，任何一项超过阈值都要立即暂停放量。</p>
+      <p>值班同学需在每次放量前确认监控面板与告警通道正常，回滚预案全程保持可用，触发条件与执行步骤见应急响应一节。</p>
+      <p>发布窗口避开业务高峰，本次选择在周二凌晨进行，灰度节奏与上一个版本保持一致。</p>
+      <h2>观察指标</h2>
+      <p>接口成功率维持在 99.95% 以上，客户端崩溃率与上一版本持平，长尾延迟没有明显变化。</p>
+      <p>用户反馈渠道未收到与本次发布相关的异常反馈，客服侧的工单量也在正常波动区间内。</p>
+      <h2>结论</h2>
+      <p>本轮发布未触发回滚，各阶段耗时与预期基本一致，后续可以把观察窗口从 24 小时缩短到 12 小时。</p>
+    </div>
+
+    <!-- (( 引用搜索面板：块内容 + 文档路径 + 插件追加的标题层级面包屑 -->
+    <div class="hint">
+      <div class="hint-item hint-item--focus">
+        <div class="hint-first">
+          <svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h9"/></svg>
+          <span class="hint-text"><mark>第二轮迭代上线总结</mark></span>
+        </div>
+        <div class="hint-meta">产品手册/版本发布/复盘/<span class="crumb" id="crumb1"><span class="crumb-item"><span class="crumb-marker">##</span><span class="crumb-name">里程碑复盘</span><span class="crumb-sep">·</span></span><span class="crumb-item"><span class="crumb-marker">###</span><span class="crumb-name">第二轮迭代</span></span></span></div>
+      </div>
+
+      <div class="hint-item">
+        <div class="hint-first">
+          <svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h9"/></svg>
+          <span class="hint-text">灰度<mark>放量</mark>到 20% 的观察指标</span>
+        </div>
+        <div class="hint-meta">产品手册/版本发布/灰度/<span class="crumb"><span class="crumb-item"><span class="crumb-marker">##</span><span class="crumb-name">灰度策略</span><span class="crumb-sep">·</span></span><span class="crumb-item"><span class="crumb-marker">###</span><span class="crumb-name">放量观察</span></span></span></div>
+      </div>
+
+      <div class="hint-item">
+        <div class="hint-first">
+          <svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h9"/></svg>
+          <span class="hint-text">回滚预案与触发条件</span>
+        </div>
+        <div class="hint-meta">产品手册/运维/应急/<span class="crumb"><span class="crumb-item"><span class="crumb-marker">##</span><span class="crumb-name">应急响应</span><span class="crumb-sep">·</span></span><span class="crumb-item"><span class="crumb-marker">###</span><span class="crumb-name">回滚预案</span></span></span></div>
+      </div>
+    </div>
+
+    <!-- 引出线锚定第一条结果的面包屑右缘，坐标在渲染时计算 -->
+    <span class="leader-dot" id="leaderDot"></span>
+    <span class="leader" id="leaderLine"></span>
+    <div class="anno" id="anno">
+      <div class="anno-title">标题层级面包屑</div>
+      <div class="anno-desc">在文档路径之后追加块所处的 h2 – h6 章节位置</div>
     </div>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <div class="card-top"><div class="badge">#</div><div class="card-title">标题层级一目了然</div></div>
-      <div class="card-desc">显示块所在的完整标题层级链，以 ##/###/#### 前缀数量表达层级，h1 自动省略</div>
-      <div class="demo"><span class="hash">##</span> 里程碑复盘 <span class="sep">·</span> <span class="hash">###</span> 第二轮迭代</div>
-    </div>
-    <div class="card">
-      <div class="card-top"><div class="badge">☰</div><div class="card-title">与文档路径并排显示</div></div>
-      <div class="card-desc">标题链追加在原有 hPath（笔记本/文档树路径）右侧，两者互不干扰、同一行对比</div>
-      <div class="demo"><span class="path">团队笔记/产品/里程碑复盘/</span>&nbsp;&nbsp;<span class="hash">##</span> 里程碑复盘 <span class="sep">·</span> <span class="hash">###</span> 第二轮迭代</div>
-    </div>
-    <div class="card">
-      <div class="card-top"><div class="badge">✎</div><div class="card-title">标题块自动补全</div></div>
-      <div class="card-desc">搜索命中标题块时自动补全末级标题文本，面包屑不再缺失末级名称</div>
-      <div class="demo"><span class="hash">###</span> 第二轮迭代</div>
-    </div>
-    <div class="card">
-      <div class="card-top"><div class="badge"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M13 2 4.5 13.5h6L10 22l8.5-11.5h-6z" fill="#fff"/></svg></div><div class="card-title">轻量无侵入</div></div>
-      <div class="card-desc">纯前端 · 官方 API /api/block/getBlockBreadcrumb · 4 路并发池与结果缓存，即时渲染不积压</div>
-      <div class="demo">无需配置，无需修改内核；SiYuan v3.6.0+ 即装即用</div>
-    </div>
-  </div>
+<script>
+  const windowBox = document.querySelector(".window").getBoundingClientRect();
+  const crumbBox = document.querySelector("#crumb1").getBoundingClientRect();
+  const annoBox = document.querySelector("#anno").getBoundingClientRect();
+  const centerY = crumbBox.top - windowBox.top + crumbBox.height / 2;
+  const startX = crumbBox.right - windowBox.left + 8;
+  const endX = annoBox.left - windowBox.left - 10;
 
-  <div class="foot">
-    <div class="chips"><span class="chip">块引用搜索</span><span class="chip">h2-h6</span><span class="chip">即装即用</span></div>
-    <div class="ver">MIT License</div>
-  </div>
+  const dot = document.querySelector("#leaderDot");
+  dot.style.left = (startX - 3.5) + "px";
+  dot.style.top = (centerY - 3.5) + "px";
+
+  const line = document.querySelector("#leaderLine");
+  line.style.left = startX + "px";
+  line.style.width = Math.max(0, endX - startX) + "px";
+  line.style.top = (centerY - 0.75) + "px";
+
+  document.querySelector("#anno").style.top = centerY + "px";
+</script>
 </body>
 </html>

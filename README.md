@@ -2,50 +2,44 @@
 
 [简体中文](README.zh-CN.md) | English
 
-A SiYuan plugin that shows the heading breadcrumb chain (h2 → h6) of each block in the block reference (`((`) search list.
+Show the heading chain of every block in SiYuan's block reference search, so you can tell which section a reference actually lives in.
 
-## Features
+![Block reference search with heading breadcrumbs](assets/preview.png)
 
-- Shows the heading chain in every result item of the `((` block reference search list (except the `((newFile` / `((newSubDoc` create hints)
-- The heading chain is visually distinct from the existing hPath: the level is expressed by the count of `#` prefixes (`##` / `###` / `####`)
-- Only h2 → h6 are shown; h1 is omitted (the document heading duplicates the document name)
-- When a result item itself is a heading block, the missing terminal name is filled in automatically from the block text
-- Supports encrypted notebooks (`notebook` parameter is passed through)
-- Pure frontend: powered by the official API `/api/block/getBlockBreadcrumb`; no kernel changes, no SQL permission required
-- Performance guards: 4-way request pool + per-block result cache; rebuilt lists reuse cached results, and a single failed request only skips that item
+## What it does
 
-## The Problem
-
-By default, the SiYuan `((` search list shows only the **hPath** (notebook / document tree path) under each result, e.g.:
+SiYuan's `((` search list shows the document path of each result, but not where the block sits inside that document. Ref Crumbs appends the block's heading chain to the same line:
 
 ```
-Release summary for v0.2
-Team Notes/Product/Milestone Review/
+第二轮迭代上线总结
+产品手册/版本发布/复盘/  ## 里程碑复盘 · ### 第二轮迭代
 ```
 
-The real position of a block, however, is often buried inside the document's heading structure. Ref Crumbs appends the block's **heading chain** to the right of the hPath:
+- Works in the `((` reference list, and optionally in the search panel (off by default)
+- Shows h2 – h6 only; the document title is already in the path
+- Keeps the look of the document path, and wraps when the line runs out of room
+- Marker (`##` / `h2` / `H₂` / none) and separator (`·` `/` `-` `~` `>`) are configurable
 
-```
-Release summary for v0.2
-Team Notes/Product/Milestone Review/  ## Milestone Review · ### v0.2 Launch
-```
+## Install
 
-So you can see at a glance which section each reference candidate actually lives in.
+- **Bazaar** — Settings → Bazaar → Plugins, search `Ref Crumbs`
+- **Manual** — copy `dist/` into `<workspace>/data/plugins/ref-crumbs-siyuan/`, then enable the plugin in Settings → Plugins
 
-## Installation
+## Settings
 
-### Bazaar
+Settings → Bazaar → Ref Crumbs.
 
-Search "Ref Crumbs" in the SiYuan bazaar (Settings → Bazaar → Plugins), install and enable it.
+| Option | Default |
+| --- | --- |
+| Breadcrumbs in the block reference list | on |
+| Breadcrumbs in the search panel | off |
+| Heading level marker | `##` |
+| Heading level separator | `·` |
 
-### Manual
+## Notes
 
-1. Copy this directory (or the contents of `dist/`) to `<workspace>/data/plugins/ref-crumbs-siyuan/`
-2. Enable the plugin in Settings → Plugins
-
-## Usage
-
-Type `((` in any editor to trigger block reference search; the heading chain appears under each result item. No configuration required.
+- Requires SiYuan 3.6.0 or later, works with encrypted notebooks
+- Pure frontend plugin: nothing is changed in the kernel and no SQL permission is needed
 
 ## Build
 
@@ -54,7 +48,7 @@ npm install
 npm run build
 ```
 
-Output goes to `dist/` (including `package.zip` for bazaar submission).
+Output: `dist/` (plugin package) and `package.zip` (bazaar asset).
 
 ## License
 
