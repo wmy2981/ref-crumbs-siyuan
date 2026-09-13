@@ -11,8 +11,8 @@ Show the heading chain of every block in SiYuan's block reference search, so you
 SiYuan's `((` search list shows the document path of each result, but not where the block sits inside that document. Ref Crumbs appends the block's heading chain to the same line:
 
 ```
-第二轮迭代上线总结
-产品手册/版本发布/复盘/  ## 里程碑复盘 · ### 第二轮迭代
+Sprint 2 release summary
+Product handbook/Releases/Retrospectives/  ## Milestone review · ### Sprint 2
 ```
 
 - Works in the `((` reference list, and optionally in the search panel (off by default)
