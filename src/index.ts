@@ -12,8 +12,13 @@ interface IBreadcrumb {
 // 每次 hint 列表里可请求的数量上限：搜索返回全部块，太多请求会阻塞
 const MAX_CONCURRENT = 4;
 
+// `((` 引用搜索提示面板
 const HINT_ITEM_SELECTOR = ".protyle-hint .b3-list-item";
+// 搜索面板（页签与 Ctrl+P 对话框共用同一份模板）结果项；未引用列表同款模板
+const SEARCH_ITEM_SELECTOR = '[data-type="search-item"]';
+const ITEM_SELECTOR = `${HINT_ITEM_SELECTOR}, ${SEARCH_ITEM_SELECTOR}`;
 const CRUMB_CLASS = "ref-crumbs__crumbs";
+const CRUMB_SEARCH_CLASS = "ref-crumbs__crumbs--search";
 const DATASET_DONE = "rcDone";
 const DATASET_MOUNTED = "rcMounted";
 
@@ -24,7 +29,7 @@ export default class RefCrumbs extends Plugin {
     private observer: MutationObserver;
     private crumbCache = new Map<string, string>();
     private pendingIDs = new Set<string>();
-    private queue: string[] = [];
+    private queue: {id: string; notebook: string;}[] = [];
     private activeCount = 0;
 
     onload() {
@@ -68,10 +73,10 @@ export default class RefCrumbs extends Plugin {
             for (const mutation of mutations) {
                 for (const node of mutation.addedNodes) {
                     if (node instanceof HTMLElement) {
-                        if (node.matches(HINT_ITEM_SELECTOR)) {
+                        if (node.matches(ITEM_SELECTOR)) {
                             items.add(node);
                         } else if (node.querySelector) {
-                            node.querySelectorAll(HINT_ITEM_SELECTOR).forEach((el) => {
+                            node.querySelectorAll(ITEM_SELECTOR).forEach((el) => {
                                 items.add(el as HTMLElement);
                             });
                         }
@@ -86,12 +91,20 @@ export default class RefCrumbs extends Plugin {
     }
 
     /**
-     * 插件加载时页面上的 hint 面板可能已经存在（例如插件重载），初始扫描一次。
+     * 插件加载时页面上可能已经存在列表（例如插件重载），初始扫描一次。
      */
     private preloadHints() {
-        document.querySelectorAll(HINT_ITEM_SELECTOR).forEach((el) => {
+        document.querySelectorAll(ITEM_SELECTOR).forEach((el) => {
             this.processItems(new Set<HTMLElement>([el as HTMLElement]));
         });
+    }
+
+    /**
+     * 列表项对应的块 id：引用提示项挂在子元素 `.b3-list-item__first` 上，
+     * 搜索结果项挂在列表项自身。资源搜索结果只有 `data-id`，取不到块 id 时跳过。
+     */
+    private itemID(item: HTMLElement): string {
+        return item.dataset.nodeId || item.querySelector("[data-node-id]")?.getAttribute("data-node-id") || "";
     }
 
     private processItems(items: Set<HTMLElement>) {
@@ -103,25 +116,27 @@ export default class RefCrumbs extends Plugin {
             if (!item.isConnected) {
                 continue;
             }
-            const id = item.querySelector("[data-node-id]")?.getAttribute("data-node-id");
+            const id = this.itemID(item);
             if (!id) {
-                // “新建文件/新建子文档”等无块 id 的提示项
+                // “新建文件/新建子文档”等无块 id 的提示项，或资源搜索结果
                 continue;
             }
             if (this.crumbCache.has(id)) {
                 this.paintIfMounted(item, this.crumbCache.get(id));
                 continue;
             }
-            this.enqueue(id);
+            // notebook 只对引用提示面板有意义：搜索面板的块可能来自任意笔记本，
+            // 透传别的笔记本会让内核按该笔记本路由 blocktree 而查不到块。
+            this.enqueue(id, item.dataset.type === "search-item" ? "" : this.lastRefSearchNotebook);
         }
     }
 
-    private enqueue(id: string) {
+    private enqueue(id: string, notebook: string) {
         if (this.crumbCache.has(id) || this.pendingIDs.has(id)) {
             return;
         }
         this.pendingIDs.add(id);
-        this.queue.push(id);
+        this.queue.push({id, notebook});
         this.pump();
     }
 
@@ -130,9 +145,9 @@ export default class RefCrumbs extends Plugin {
      */
     private pump() {
         while (this.activeCount < MAX_CONCURRENT && this.queue.length > 0) {
-            const id = this.queue.shift();
+            const {id, notebook} = this.queue.shift();
             this.activeCount++;
-            this.fetchBreadcrumb(id).then((html) => {
+            this.fetchBreadcrumb(id, notebook).then((html) => {
                 this.crumbCache.set(id, html);
                 this.paintById(id);
             }).catch((_err) => {
@@ -146,10 +161,10 @@ export default class RefCrumbs extends Plugin {
         }
     }
 
-    private async fetchBreadcrumb(id: string): Promise<string> {
+    private async fetchBreadcrumb(id: string, notebook: string): Promise<string> {
         const param: Record<string, unknown> = {id, excludeTypes: []};
-        if (this.lastRefSearchNotebook) {
-            param.notebook = this.lastRefSearchNotebook;
+        if (notebook) {
+            param.notebook = notebook;
         }
         const response = await fetch("/api/block/getBlockBreadcrumb", {
             method: "POST",
@@ -189,8 +204,8 @@ export default class RefCrumbs extends Plugin {
     }
 
     /**
-     * 面包屑响应回来后，把标题链渲染到当前存在的搜索列表项上。
-     * 搜索列表每次输入都会被整体重写（innerHTML 重建），因此以 id 重新定位元素，
+     * 面包屑响应回来后，把标题链渲染到当前存在的列表项上。
+     * 列表每次输入都会被整体重写（innerHTML 重建），因此以 id 重新定位元素，
      * 并校验元素仍然连接且尚未渲染。
      */
     private paintById(id: string) {
@@ -198,34 +213,47 @@ export default class RefCrumbs extends Plugin {
         if (html === undefined || html === "") {
             return;
         }
-        document.querySelectorAll(HINT_ITEM_SELECTOR).forEach((el) => {
+        document.querySelectorAll(ITEM_SELECTOR).forEach((el) => {
             const item = el as HTMLElement;
-            const nodeID = item.querySelector("[data-node-id]")?.getAttribute("data-node-id");
-            if (nodeID === id) {
+            if (this.itemID(item) === id) {
                 this.paintIfMounted(item, html);
             }
         });
     }
 
     /**
-     * 标题链追加到 hPath 行（列表项最后一个 `.b3-list-item__meta`）的右侧，
-     * 与文档树路径保持同行，仅通过「#」前缀和颜色区分。
+     * 标题链追加到 hPath 的右侧，与文档树路径保持同行，仅通过「#」前缀和颜色区分。
+     * 两块面板的行结构不同：
+     * - 引用提示项是多行块，hPath 在最后一个 `.b3-list-item__meta` 里，面包屑塞进这一行；
+     * - 搜索结果项是单行 flex，hPath 所在的 meta 带 `--ellipsis`（截断）不能复用，
+     *   面包屑作为独立的 flex 子项插在 hPath 之后，由自身样式控制收缩换行。
      */
     private paintIfMounted(item: HTMLElement, html: string) {
         if (!item.isConnected || item.dataset[DATASET_MOUNTED] === "1" || !html) {
             return;
         }
         item.dataset[DATASET_MOUNTED] = "1";
-        const metas = item.querySelectorAll(":scope > div.b3-list-item__meta");
-        const meta = metas.length > 0 ? metas[metas.length - 1] : null;
-        if (!meta) {
-            return;
-        }
         const crumb = document.createElement("span");
-        crumb.className = CRUMB_CLASS;
         crumb.innerHTML = html;
-        meta.appendChild(crumb);
-        // 搜索结果本身就是标题块时补回空名标题
+        if (item.dataset.type === "search-item") {
+            crumb.className = `${CRUMB_CLASS} ${CRUMB_SEARCH_CLASS}`;
+            const paths = item.querySelectorAll(".b3-list-item__meta--ellipsis");
+            const path = paths.length > 0 ? paths[paths.length - 1] : null;
+            if (path) {
+                path.insertAdjacentElement("afterend", crumb);
+            } else {
+                item.appendChild(crumb);
+            }
+        } else {
+            const metas = item.querySelectorAll(":scope > div.b3-list-item__meta");
+            const meta = metas.length > 0 ? metas[metas.length - 1] : null;
+            if (!meta) {
+                return;
+            }
+            crumb.className = CRUMB_CLASS;
+            meta.appendChild(crumb);
+        }
+        // 列表项本身就是标题块时补回空名标题
         crumb.querySelectorAll(".ref-crumbs__empty-name").forEach((emptyName) => {
             const selfText = item.querySelector(".b3-list-item__text")?.textContent?.trim() || "";
             if (selfText) {

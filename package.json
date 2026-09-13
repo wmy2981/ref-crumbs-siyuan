@@ -1,7 +1,7 @@
 {
   "name": "ref-crumbs-siyuan",
   "version": "0.1.1",
-  "description": "Show heading breadcrumbs (h2-h6) of each block in the block reference search list",
+  "description": "Show heading breadcrumbs (h2-h6) of each block in the block reference search list and the search panel",
   "main": ".src/index.js",
   "scripts": {
     "format": "dprint fmt",

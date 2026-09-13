@@ -16,8 +16,8 @@
     "zh-CN": "引用块搜索列表显示面包屑"
   },
   "description": {
-    "default": "Show heading breadcrumbs (h2-h6) of each block in the block reference search list",
-    "zh-CN": "在块引用搜索列表中显示每个块的标题层级面包屑（h2-h6）"
+    "default": "Show heading breadcrumbs (h2-h6) of each block in the block reference search list and the search panel",
+    "zh-CN": "在块引用搜索列表和搜索面板中显示每个块的标题层级面包屑（h2-h6）"
   },
   "readme": {
     "default": "README.md",
