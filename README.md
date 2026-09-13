@@ -18,7 +18,8 @@ SiYuan's `((` search list shows the document path of each result, but not where 
 - Works in the `((` reference list, and optionally in the search panel (off by default)
 - Shows h2 – h6 only; the document title is already in the path
 - Keeps the look of the document path, and wraps when the line runs out of room
-- Marker (`##` / `h2` / `H₂` / none) and separator (`·` `/` `-` `~` `>`) are configurable
+- Long heading names are collapsed with an ellipsis, level by level, so a long h3 never hides the h2 above it
+- Marker (`##` / `h2` / `H₂` / none), separator (`·` `/` `-` `~` `>`) and the collapse length are configurable
 
 ## Install
 
@@ -35,6 +36,8 @@ Settings → Bazaar → Ref Crumbs.
 | Breadcrumbs in the search panel | off |
 | Heading level marker | `##` |
 | Heading level separator | `·` |
+| Collapse long heading names | on |
+| Maximum heading name length | 12 characters |
 
 ## Notes
 
