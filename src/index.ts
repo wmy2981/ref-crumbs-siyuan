@@ -1,4 +1,10 @@
 import {Plugin} from "siyuan";
+import {
+    DEFAULT_SETTINGS,
+    ISettings,
+    mergeSettings,
+    STORAGE_NAME,
+} from "./settings";
 import "./index.scss";
 
 // `/api/block/getBlockBreadcrumb` 返回值项，参见 kernel/model/blockinfo.go 中的 BlockPath
@@ -31,8 +37,16 @@ export default class RefCrumbs extends Plugin {
     private pendingIDs = new Set<string>();
     private queue: {id: string; notebook: string;}[] = [];
     private activeCount = 0;
+    private settings: ISettings = {...DEFAULT_SETTINGS};
 
-    onload() {
+    async onload() {
+        let stored: unknown;
+        try {
+            stored = await this.loadData(STORAGE_NAME);
+        } catch {
+            // 首次安装或读取失败，用默认值
+        }
+        this.settings = mergeSettings(stored);
         this.hookFetchRequest();
         this.installObserver();
         this.preloadHints();
@@ -179,7 +193,7 @@ export default class RefCrumbs extends Plugin {
     }
 
     /**
-     * 仅保留标题层级链 h2~h6（h1 不需要），层级用「#」前缀表达、与 hPath 的文档树路径区分。
+     * 仅保留标题层级链 h2~h6（h1 不需要），层级用可配置的标识符号表达、与 hPath 的文档树路径区分。
      * 目标块自身是标题时，后端会把该标题名置空（编辑器面包屑菜单的惯例），
      * 这里渲染为空名占位，渲染时用搜索结果项的块文本补回，见 paintIfMounted。
      */
@@ -189,18 +203,32 @@ export default class RefCrumbs extends Plugin {
             return "";
         }
         // 每级标题包一层 inline-block：换行只发生在层级之间，单个标题名内部不被拆开，
-        // 标题名本身过长时再由容器的 word-break: break-all 兜底换行。
+        // 标题名本身过长时再由容器兜底换行。
         // 连接符放在前一级末尾，避免换行后行首出现孤立的连接符。
+        const sep = `<span class="ref-crumbs__sep">${this.settings.separator}</span>`;
         return headings.map((h, i) => {
-            const level = parseInt(h.subType.slice(1), 10);
             const name = h.name || "";
-            const sep = i < headings.length - 1 ? '<span class="ref-crumbs__sep">·</span>' : "";
-            return '<span class="ref-crumbs__item">' + `<span class="ref-crumbs__hash">${"#".repeat(level)}</span>` +
+            return '<span class="ref-crumbs__item">' + this.markerHTML(h.subType) +
                 (name ?
                     `<span class="ref-crumbs__name">${name}</span>` :
                     '<span class="ref-crumbs__name ref-crumbs__empty-name"></span>') +
-                sep + "</span>";
+                (i < headings.length - 1 ? sep : "") + "</span>";
         }).join("");
+    }
+
+    /** 标题层级标识符号，h1 已被过滤，subType 形如 `h2` */
+    private markerHTML(subType: string): string {
+        const level = parseInt(subType.slice(1), 10);
+        switch (this.settings.marker) {
+            case "h":
+                return `<span class="ref-crumbs__marker">h${level}</span>`;
+            case "hSub":
+                return `<span class="ref-crumbs__marker">H<sub>${level}</sub></span>`;
+            case "none":
+                return "";
+            default:
+                return `<span class="ref-crumbs__marker">${"#".repeat(level)}</span>`;
+        }
     }
 
     /**

@@ -27,7 +27,8 @@
     max-width: 100%;
   }
 
-  &__hash {
+  // 标题层级标识符号：## / h2 / H₂
+  &__marker {
     font-weight: 500;
     color: var(--b3-theme-on-surface-light);
     margin-right: 2px;
