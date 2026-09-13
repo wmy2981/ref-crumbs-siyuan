@@ -25,6 +25,11 @@
   },
   "icon": "icon.png",
   "preview": "preview.png",
+  "funding": {
+    "custom": [
+      "https://afdian.com/a/wmy2981"
+    ]
+  },
   "keywords": [
     "面包屑",
     "breadcrumb",
