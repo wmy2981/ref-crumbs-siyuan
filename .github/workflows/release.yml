@@ -1,7 +1,12 @@
 name: Release
 
-# 每次推送都跑一遍：版本没变就只上传构建产物，版本升高才发 Release
-on: push
+# 只在 main 分支的推送和手动触发时运行，两者走同一套版本比较逻辑：
+# 版本没变就只上传构建产物，版本升高才发 Release
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: write
