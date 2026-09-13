@@ -8,6 +8,8 @@
   "markerDesc": "Symbol shown before each heading name",
   "separatorTitle": "Heading level separator",
   "separatorDesc": "Symbol shown between two heading levels",
+  "includeSelfTitle": "Include the block's own heading",
+  "includeSelfDesc": "When the block itself is a heading, show it as the last level; turn off to show only the headings above it",
   "markerNone": "(none)",
   "truncateTitle": "Collapse long heading names",
   "truncateDesc": "Cut an over-long heading name and mark the cut with an ellipsis",

@@ -8,6 +8,8 @@
   "markerDesc": "显示在每个标题名前的符号",
   "separatorTitle": "标题层级连接符号",
   "separatorDesc": "显示在两个标题层级之间的符号",
+  "includeSelfTitle": "面包屑包含自身标题",
+  "includeSelfDesc": "块本身是标题时，把它作为最后一级显示；关闭后只显示它上方的标题",
   "markerNone": "（无）",
   "truncateTitle": "折叠过长标题",
   "truncateDesc": "标题名过长时截断尾部，并用省略号标记",

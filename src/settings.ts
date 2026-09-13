@@ -15,6 +15,8 @@ export interface ISettings {
     marker: MarkerStyle;
     /** 标题层级之间的连接符号 */
     separator: string;
+    /** 面包屑包含目标块自身的标题 */
+    includeSelf: boolean;
     /** 折叠过长的标题名 */
     truncate: boolean;
     /** 单个标题名保留的字符数 */
@@ -26,6 +28,7 @@ export const DEFAULT_SETTINGS: ISettings = {
     searchList: false,
     marker: "hash",
     separator: "·",
+    includeSelf: true,
     truncate: false,
     maxLength: 12,
 };
@@ -63,6 +66,9 @@ export const mergeSettings = (stored: unknown): ISettings => {
     }
     if (SEPARATOR_CHOICES.indexOf(data.separator) > -1) {
         settings.separator = data.separator;
+    }
+    if (typeof data.includeSelf === "boolean") {
+        settings.includeSelf = data.includeSelf;
     }
     if (typeof data.truncate === "boolean") {
         settings.truncate = data.truncate;

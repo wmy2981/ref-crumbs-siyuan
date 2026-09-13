@@ -167,6 +167,14 @@ export default class RefCrumbs extends Plugin {
                 ),
         });
         this.setting.addItem({
+            title: this.i18n.includeSelfTitle,
+            description: this.i18n.includeSelfDesc,
+            createActionElement: () =>
+                this.switchElement(draft.includeSelf, (checked) => {
+                    draft.includeSelf = checked;
+                }),
+        });
+        this.setting.addItem({
             title: this.i18n.truncateTitle,
             description: this.i18n.truncateDesc,
             createActionElement: () =>
@@ -388,7 +396,7 @@ export default class RefCrumbs extends Plugin {
         if (payload.code !== 0) {
             throw new Error(payload.msg || `getBlockBreadcrumb failed: ${id}`);
         }
-        return this.buildCrumbHTML(payload.data || []);
+        return this.buildCrumbHTML(payload.data || [], id);
     }
 
     /**
@@ -403,11 +411,14 @@ export default class RefCrumbs extends Plugin {
 
     /**
      * 仅保留标题层级链 h2~h6（h1 不需要），层级用可配置的标识符号表达、与 hPath 的文档树路径区分。
-     * 目标块自身是标题时，后端会把该标题名置空（编辑器面包屑菜单的惯例），
-     * 这里渲染为空名占位，渲染时用搜索结果项的块文本补回，见 paintIfMounted。
+     * 目标块自身也在路径里，位于链尾且名字被后端置空（编辑器面包屑菜单的惯例）：
+     * 关闭「包含自身标题」时按 id 认出并摘掉它；开启时渲染为空名占位，
+     * 渲染时用搜索结果项的块文本补回，见 paintIfMounted。
      */
-    private buildCrumbHTML(paths: IBreadcrumb[]): string {
-        const headings = paths.filter((p) => p && p.type === "NodeHeading" && /^h[2-6]$/.test(p.subType));
+    private buildCrumbHTML(paths: IBreadcrumb[], id: string): string {
+        const last = paths[paths.length - 1];
+        const chain = !this.settings.includeSelf && last && last.id === id ? paths.slice(0, -1) : paths;
+        const headings = chain.filter((p) => p && p.type === "NodeHeading" && /^h[2-6]$/.test(p.subType));
         if (headings.length === 0) {
             return "";
         }
