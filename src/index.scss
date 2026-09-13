@@ -18,6 +18,12 @@
   margin-left: 8px;
   font-size: 0.75rem;
   line-height: 1.3;
+
+  // 移动端搜索结果项带 .b3-list-item--two（display: block），路径也不带 --ellipsis，
+  // 面包屑作为块级子元素独占一行；此时 50% 会把每级标题压进半个屏幕反复折行
+  .b3-list-item--two > & {
+    max-width: 100%;
+  }
 }
 
 .ref-crumbs {
