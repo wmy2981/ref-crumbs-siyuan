@@ -193,7 +193,11 @@ export default class RefCrumbs extends Plugin {
         return input;
     }
 
-    /** 数字输入：失焦时校验，非法取值回退到原值，避免把空串或越界值写进配置 */
+    /**
+     * 数字输入：监听 input 而非 change —— 设置对话框把回车绑定为保存，
+     * 此时 change 尚未派发，用 change 会丢掉刚输入的长度。
+     * 只有合法取值写入草稿，失焦时把空值/越界值回退到最近一次有效取值。
+     */
     private numberElement(value: number, onChange: (value: number) => void): HTMLElement {
         const input = document.createElement("input");
         input.type = "number";
@@ -201,11 +205,16 @@ export default class RefCrumbs extends Plugin {
         input.min = String(MIN_MAX_LENGTH);
         input.max = String(MAX_MAX_LENGTH);
         input.value = String(value);
-        input.addEventListener("change", () => {
+        let current = value;
+        input.addEventListener("input", () => {
             const parsed = parseInt(input.value, 10);
-            const next = isValidMaxLength(parsed) ? parsed : value;
-            input.value = String(next);
-            onChange(next);
+            if (isValidMaxLength(parsed)) {
+                current = parsed;
+                onChange(current);
+            }
+        });
+        input.addEventListener("change", () => {
+            input.value = String(current);
         });
         return input;
     }
