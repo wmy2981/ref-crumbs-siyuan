@@ -173,13 +173,19 @@ export default class RefCrumbs extends Plugin {
         if (headings.length === 0) {
             return "";
         }
-        return headings.map((h) => {
+        // 每级标题包一层 inline-block：换行只发生在层级之间，单个标题名内部不被拆开，
+        // 标题名本身过长时再由容器的 word-break: break-all 兜底换行。
+        // 连接符放在前一级末尾，避免换行后行首出现孤立的连接符。
+        return headings.map((h, i) => {
             const level = parseInt(h.subType.slice(1), 10);
             const name = h.name || "";
-            return `<span class="ref-crumbs__hash">${"#".repeat(level)}</span>` + (name
-                ? `<span class="ref-crumbs__name">${name}</span>`
-                : '<span class="ref-crumbs__name ref-crumbs__empty-name"></span>');
-        }).join('<span class="ref-crumbs__sep">·</span>');
+            const sep = i < headings.length - 1 ? '<span class="ref-crumbs__sep">·</span>' : "";
+            return '<span class="ref-crumbs__item">' + `<span class="ref-crumbs__hash">${"#".repeat(level)}</span>` +
+                (name ?
+                    `<span class="ref-crumbs__name">${name}</span>` :
+                    '<span class="ref-crumbs__name ref-crumbs__empty-name"></span>') +
+                sep + "</span>";
+        }).join("");
     }
 
     /**

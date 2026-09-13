@@ -3,11 +3,16 @@
 .ref-crumbs__crumbs {
   display: inline;
   margin-left: 6px;
-  white-space: nowrap;
   user-select: none;
 }
 
 .ref-crumbs {
+  // 单级标题为换行原子单位：层级之间可换行，标题名内部不拆分
+  &__item {
+    display: inline-block;
+    max-width: 100%;
+  }
+
   &__hash {
     font-weight: 500;
     color: var(--b3-theme-on-surface-light);
