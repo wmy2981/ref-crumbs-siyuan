@@ -17,6 +17,7 @@ SiYuan's `((` search list shows the document path of each result, but not where 
 
 - Works in the `((` reference list, and optionally in the search panel (off by default)
 - Shows h2 – h6 only; the document title is already in the path
+- When the block itself is a heading, it is appended as the last level; turn that option off to keep only the headings above it
 - Keeps the look of the document path, and wraps when the line runs out of room
 - Long heading names can be collapsed with an ellipsis (off by default), level by level, so a long h3 never hides the h2 above it
 - Marker (`##` / `h2` / `H₂` / none), separator (`·` `/` `-` `~` `>`) and the collapse length are configurable
@@ -36,6 +37,7 @@ Settings → Bazaar → Ref Crumbs.
 | Breadcrumbs in the search panel | off |
 | Heading level marker | `##` |
 | Heading level separator | `·` |
+| Include the block's own heading | on |
 | Collapse long heading names | off |
 | Maximum heading name length | 12 characters |
 
