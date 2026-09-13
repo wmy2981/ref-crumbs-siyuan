@@ -41,6 +41,9 @@ const DATASET_MOUNTED = "rcMounted";
 /** 搜索结果项与引用提示项的 DOM 结构不同，靠 `data-type` 区分 */
 const isSearchItem = (item: HTMLElement) => item.dataset.type === "search-item";
 
+/** 与思源 `isMobile()` 同款判定：只有移动端布局才渲染 `#sidebar` */
+const isMobileLayout = () => Boolean(document.getElementById("sidebar"));
+
 /** 超过字符数上限时截断为「前 N 个字符 + …」，按码点计数避免拆开代理对 */
 const truncateText = (text: string, maxLength: number) => {
     const chars = Array.from(text);
@@ -101,6 +104,31 @@ export default class RefCrumbs extends Plugin {
     async onDataChanged() {
         await this.loadSettings();
         this.repaint();
+    }
+
+    /**
+     * 思源 `Setting.open` 构建完面板后会聚焦面板里的第一个 input（见 app/src/plugin/Setting.ts），
+     * 移动端上这次自动聚焦会唤起软键盘，这里在面板打开后立刻把焦点与键盘收掉。
+     */
+    openSetting() {
+        super.openSetting();
+        if (!isMobileLayout()) {
+            return;
+        }
+        const focused = document.activeElement as HTMLElement;
+        if (!focused?.closest(".b3-dialog__content")) {
+            return;
+        }
+        // 与思源移动端的 activeBlur 同款：Android / 鸿蒙的软键盘需经原生桥接关闭，
+        // 原生侧会在键盘退场后清理焦点，其余平台直接失焦
+        if (window.JSAndroid?.hideKeyboard) {
+            window.JSAndroid.hideKeyboard();
+            return;
+        }
+        if (window.JSHarmony?.hideKeyboard) {
+            window.JSHarmony.hideKeyboard();
+        }
+        focused.blur();
     }
 
     /** 注册思源设置面板，配置经 loadData/saveData 持久化 */

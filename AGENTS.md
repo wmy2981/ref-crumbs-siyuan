@@ -38,4 +38,4 @@ Releases are published by `.github/workflows/release.yml` on every push:
 
 ## SiYuan target
 
-- `minAppVersion` is 3.6.0. The plugin depends on the official API `/api/block/getBlockBreadcrumb`, the `.protyle-hint .b3-list-item` markup, the search panel's `[data-type="search-item"]` items, and a `window.fetch` monkey-patch that captures the `searchRefBlock` notebook parameter — check all of these against the SiYuan source for the targeted version before bumping the minimum.
+- `minAppVersion` is 3.6.0. The plugin depends on the official API `/api/block/getBlockBreadcrumb`, the `.protyle-hint .b3-list-item` markup, the search panel's `[data-type="search-item"]` items, a `window.fetch` monkey-patch that captures the `searchRefBlock` notebook parameter, and the settings dialog's auto-focus that `openSetting()` undoes on mobile (`Setting.open` focuses the first `input, textarea` it rendered, `window.JSAndroid`/`JSHarmony.hideKeyboard` closes the soft keyboard) — check all of these against the SiYuan source for the targeted version before bumping the minimum.
