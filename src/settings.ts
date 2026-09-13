@@ -26,7 +26,7 @@ export const DEFAULT_SETTINGS: ISettings = {
     searchList: false,
     marker: "hash",
     separator: "·",
-    truncate: true,
+    truncate: false,
     maxLength: 12,
 };
 
