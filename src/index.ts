@@ -6,9 +6,12 @@ import {
 import {
     DEFAULT_SETTINGS,
     ISettings,
+    isValidMaxLength,
     MARKER_CHOICES,
     MarkerStyle,
+    MAX_MAX_LENGTH,
     mergeSettings,
+    MIN_MAX_LENGTH,
     SEPARATOR_CHOICES,
     STORAGE_NAME,
 } from "./settings";
@@ -37,6 +40,23 @@ const DATASET_MOUNTED = "rcMounted";
 
 /** 搜索结果项与引用提示项的 DOM 结构不同，靠 `data-type` 区分 */
 const isSearchItem = (item: HTMLElement) => item.dataset.type === "search-item";
+
+/** 超过字符数上限时截断为「前 N 个字符 + …」，按码点计数避免拆开代理对 */
+const truncateText = (text: string, maxLength: number) => {
+    const chars = Array.from(text);
+    return chars.length > maxLength ? chars.slice(0, maxLength).join("") + "…" : text;
+};
+
+// 后端返回的标题名已做 HTML 转义（kernel/model/blockinfo.go 的 EscapeHTML），
+// 截断前先解码，否则 `&amp;` 这类实体会被截成半截
+const decodeHTML = (text: string) => {
+    const element = document.createElement("textarea");
+    element.innerHTML = text;
+    return element.value;
+};
+
+const ESCAPES: Record<string, string> = {"&": "&amp;", "<": "&lt;", ">": "&gt;"};
+const escapeHTML = (text: string) => text.replace(/[&<>]/g, (char) => ESCAPES[char]);
 
 export default class RefCrumbs extends Plugin {
     private originalFetch: typeof window.fetch;
@@ -146,6 +166,22 @@ export default class RefCrumbs extends Plugin {
                     },
                 ),
         });
+        this.setting.addItem({
+            title: this.i18n.truncateTitle,
+            description: this.i18n.truncateDesc,
+            createActionElement: () =>
+                this.switchElement(draft.truncate, (checked) => {
+                    draft.truncate = checked;
+                }),
+        });
+        this.setting.addItem({
+            title: this.i18n.maxLengthTitle,
+            description: this.i18n.maxLengthDesc,
+            createActionElement: () =>
+                this.numberElement(draft.maxLength, (value) => {
+                    draft.maxLength = value;
+                }),
+        });
     }
 
     private switchElement(checked: boolean, onChange: (checked: boolean) => void): HTMLElement {
@@ -154,6 +190,23 @@ export default class RefCrumbs extends Plugin {
         input.className = "b3-switch fn__flex-center";
         input.checked = checked;
         input.addEventListener("change", () => onChange(input.checked));
+        return input;
+    }
+
+    /** 数字输入：失焦时校验，非法取值回退到原值，避免把空串或越界值写进配置 */
+    private numberElement(value: number, onChange: (value: number) => void): HTMLElement {
+        const input = document.createElement("input");
+        input.type = "number";
+        input.className = "b3-text-field";
+        input.min = String(MIN_MAX_LENGTH);
+        input.max = String(MAX_MAX_LENGTH);
+        input.value = String(value);
+        input.addEventListener("change", () => {
+            const parsed = parseInt(input.value, 10);
+            const next = isValidMaxLength(parsed) ? parsed : value;
+            input.value = String(next);
+            onChange(next);
+        });
         return input;
     }
 
@@ -330,6 +383,16 @@ export default class RefCrumbs extends Plugin {
     }
 
     /**
+     * 标题名渲染：开启折叠且超长时截断，逐级独立判断，不影响同链其他层级。
+     */
+    private crumbName(name: string): string {
+        if (!name || !this.settings.truncate) {
+            return name;
+        }
+        return escapeHTML(truncateText(decodeHTML(name), this.settings.maxLength));
+    }
+
+    /**
      * 仅保留标题层级链 h2~h6（h1 不需要），层级用可配置的标识符号表达、与 hPath 的文档树路径区分。
      * 目标块自身是标题时，后端会把该标题名置空（编辑器面包屑菜单的惯例），
      * 这里渲染为空名占位，渲染时用搜索结果项的块文本补回，见 paintIfMounted。
@@ -339,12 +402,11 @@ export default class RefCrumbs extends Plugin {
         if (headings.length === 0) {
             return "";
         }
-        // 每级标题包一层 inline-block：换行只发生在层级之间，单个标题名内部不被拆开，
-        // 标题名本身过长时再由容器兜底换行。
+        // 每级标题包一层 inline-block：换行只发生在层级之间，单个标题名不被拆开。
         // 连接符放在前一级末尾，避免换行后行首出现孤立的连接符。
         const sep = `<span class="ref-crumbs__sep">${this.settings.separator}</span>`;
         return headings.map((h, i) => {
-            const name = h.name || "";
+            const name = this.crumbName(h.name || "");
             return '<span class="ref-crumbs__item">' + this.markerHTML(h.subType) +
                 (name ?
                     `<span class="ref-crumbs__name">${name}</span>` :
@@ -418,11 +480,13 @@ export default class RefCrumbs extends Plugin {
             crumb.className = CRUMB_CLASS;
             meta.appendChild(crumb);
         }
-        // 列表项本身就是标题块时补回空名标题
+        // 列表项本身就是标题块时补回空名标题，同样受折叠设置约束
         crumb.querySelectorAll(".ref-crumbs__empty-name").forEach((emptyName) => {
             const selfText = item.querySelector(".b3-list-item__text")?.textContent?.trim() || "";
             if (selfText) {
-                emptyName.textContent = selfText;
+                emptyName.textContent = this.settings.truncate ?
+                    truncateText(selfText, this.settings.maxLength) :
+                    selfText;
             }
         });
     }

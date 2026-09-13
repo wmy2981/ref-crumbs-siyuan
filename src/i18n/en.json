@@ -9,5 +9,9 @@
   "separatorTitle": "Heading level separator",
   "separatorDesc": "Symbol shown between two heading levels",
   "markerNone": "(none)",
+  "truncateTitle": "Collapse long heading names",
+  "truncateDesc": "Cut an over-long heading name and mark the cut with an ellipsis",
+  "maxLengthTitle": "Maximum heading name length",
+  "maxLengthDesc": "Characters kept per heading name, each level is truncated on its own",
   "saveFailed": "Failed to save settings"
 }

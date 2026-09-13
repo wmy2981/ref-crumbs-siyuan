@@ -15,6 +15,10 @@ export interface ISettings {
     marker: MarkerStyle;
     /** 标题层级之间的连接符号 */
     separator: string;
+    /** 折叠过长的标题名 */
+    truncate: boolean;
+    /** 单个标题名保留的字符数 */
+    maxLength: number;
 }
 
 export const DEFAULT_SETTINGS: ISettings = {
@@ -22,7 +26,16 @@ export const DEFAULT_SETTINGS: ISettings = {
     searchList: false,
     marker: "hash",
     separator: "·",
+    truncate: true,
+    maxLength: 12,
 };
+
+/** 标题名长度上下限，限制在设置面板里误填的取值范围 */
+export const MIN_MAX_LENGTH = 1;
+export const MAX_MAX_LENGTH = 200;
+
+export const isValidMaxLength = (value: unknown): value is number =>
+    typeof value === "number" && Number.isInteger(value) && value >= MIN_MAX_LENGTH && value <= MAX_MAX_LENGTH;
 
 /** 标识符号候选项，界面文案见设置面板 */
 export const MARKER_CHOICES: MarkerStyle[] = ["hash", "h", "hSub", "none"];
@@ -50,6 +63,12 @@ export const mergeSettings = (stored: unknown): ISettings => {
     }
     if (SEPARATOR_CHOICES.indexOf(data.separator) > -1) {
         settings.separator = data.separator;
+    }
+    if (typeof data.truncate === "boolean") {
+        settings.truncate = data.truncate;
+    }
+    if (isValidMaxLength(data.maxLength)) {
+        settings.maxLength = data.maxLength;
     }
     return settings;
 };

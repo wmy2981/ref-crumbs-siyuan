@@ -9,5 +9,9 @@
   "separatorTitle": "标题层级连接符号",
   "separatorDesc": "显示在两个标题层级之间的符号",
   "markerNone": "（无）",
+  "truncateTitle": "折叠过长标题",
+  "truncateDesc": "标题名过长时截断尾部，并用省略号标记",
+  "maxLengthTitle": "标题最大长度（字符）",
+  "maxLengthDesc": "单个标题名保留的字符数，各层级独立截断",
   "saveFailed": "设置保存失败"
 }
