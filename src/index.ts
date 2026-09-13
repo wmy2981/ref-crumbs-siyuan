@@ -1,8 +1,15 @@
-import {Plugin} from "siyuan";
+import {
+    Plugin,
+    Setting,
+    showMessage,
+} from "siyuan";
 import {
     DEFAULT_SETTINGS,
     ISettings,
+    MARKER_CHOICES,
+    MarkerStyle,
     mergeSettings,
+    SEPARATOR_CHOICES,
     STORAGE_NAME,
 } from "./settings";
 import "./index.scss";
@@ -28,6 +35,9 @@ const CRUMB_SEARCH_CLASS = "ref-crumbs__crumbs--search";
 const DATASET_DONE = "rcDone";
 const DATASET_MOUNTED = "rcMounted";
 
+/** 搜索结果项与引用提示项的 DOM 结构不同，靠 `data-type` 区分 */
+const isSearchItem = (item: HTMLElement) => item.dataset.type === "search-item";
+
 export default class RefCrumbs extends Plugin {
     private originalFetch: typeof window.fetch;
     private hookedFetch: typeof window.fetch;
@@ -40,13 +50,8 @@ export default class RefCrumbs extends Plugin {
     private settings: ISettings = {...DEFAULT_SETTINGS};
 
     async onload() {
-        let stored: unknown;
-        try {
-            stored = await this.loadData(STORAGE_NAME);
-        } catch {
-            // 首次安装或读取失败，用默认值
-        }
-        this.settings = mergeSettings(stored);
+        await this.loadSettings();
+        this.buildSettingPanel();
         this.hookFetchRequest();
         this.installObserver();
         this.preloadHints();
@@ -57,6 +62,117 @@ export default class RefCrumbs extends Plugin {
             window.fetch = this.originalFetch;
         }
         this.observer?.disconnect();
+    }
+
+    private async loadSettings() {
+        let stored: unknown;
+        try {
+            stored = await this.loadData(STORAGE_NAME);
+        } catch {
+            // 首次安装或存储文件读取失败，用默认值
+        }
+        this.settings = mergeSettings(stored);
+    }
+
+    /**
+     * 其他窗口改了配置时由内核推送触发（内核会把保存方窗口排除在外，
+     * 所以本窗口的变更由设置面板就地应用）。定义本钩子后思源不再重载插件。
+     */
+    async onDataChanged() {
+        await this.loadSettings();
+        this.repaint();
+    }
+
+    /** 注册思源设置面板，配置经 loadData/saveData 持久化 */
+    private buildSettingPanel() {
+        // 控件只改草稿，点保存才落到 this.settings 并落盘；取消/关闭即丢弃
+        let draft: ISettings = {...this.settings};
+        this.setting = new Setting({
+            confirmCallback: () => {
+                this.settings = {...draft};
+                // 本窗口保存不会收到内核的 dataChange 推送，这里就地生效
+                this.repaint();
+                this.saveData(STORAGE_NAME, this.settings).catch(() => {
+                    showMessage(this.i18n.saveFailed, 6000, "error");
+                });
+            },
+            destroyCallback: () => {
+                draft = {...this.settings};
+            },
+        });
+        const markerLabels: Record<MarkerStyle, string> = {
+            hash: "##, ###, ####",
+            h: "h2, h3, h4",
+            hSub: "H₂, H₃, H₄",
+            none: this.i18n.markerNone,
+        };
+        this.setting.addItem({
+            title: this.i18n.refListTitle,
+            description: this.i18n.refListDesc,
+            createActionElement: () =>
+                this.switchElement(draft.refList, (checked) => {
+                    draft.refList = checked;
+                }),
+        });
+        this.setting.addItem({
+            title: this.i18n.searchListTitle,
+            description: this.i18n.searchListDesc,
+            createActionElement: () =>
+                this.switchElement(draft.searchList, (checked) => {
+                    draft.searchList = checked;
+                }),
+        });
+        this.setting.addItem({
+            title: this.i18n.markerTitle,
+            description: this.i18n.markerDesc,
+            createActionElement: () =>
+                this.selectElement(
+                    MARKER_CHOICES.map((value) => ({value, label: markerLabels[value]})),
+                    draft.marker,
+                    (value) => {
+                        draft.marker = value as MarkerStyle;
+                    },
+                ),
+        });
+        this.setting.addItem({
+            title: this.i18n.separatorTitle,
+            description: this.i18n.separatorDesc,
+            createActionElement: () =>
+                this.selectElement(
+                    SEPARATOR_CHOICES.map((value) => ({value, label: value})),
+                    draft.separator,
+                    (value) => {
+                        draft.separator = value;
+                    },
+                ),
+        });
+    }
+
+    private switchElement(checked: boolean, onChange: (checked: boolean) => void): HTMLElement {
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.className = "b3-switch fn__flex-center";
+        input.checked = checked;
+        input.addEventListener("change", () => onChange(input.checked));
+        return input;
+    }
+
+    private selectElement(
+        choices: {value: string; label: string;}[],
+        value: string,
+        onChange: (value: string) => void,
+    ): HTMLElement {
+        const select = document.createElement("select");
+        select.className = "b3-select fn__flex-center fn__size200";
+        for (const choice of choices) {
+            const option = document.createElement("option");
+            option.value = choice.value;
+            option.textContent = choice.label;
+            select.appendChild(option);
+        }
+        select.value = value;
+        select.addEventListener("change", () => onChange(select.value));
+        return select;
     }
 
     /**
@@ -123,7 +239,8 @@ export default class RefCrumbs extends Plugin {
 
     private processItems(items: Set<HTMLElement>) {
         for (const item of items) {
-            if (item.dataset[DATASET_DONE] === "1") {
+            // 所属面板关闭时不必记录已处理标记，配置改回来后会整体重画
+            if (!this.surfaceEnabled(item) || item.dataset[DATASET_DONE] === "1") {
                 continue;
             }
             item.dataset[DATASET_DONE] = "1";
@@ -141,8 +258,28 @@ export default class RefCrumbs extends Plugin {
             }
             // notebook 只对引用提示面板有意义：搜索面板的块可能来自任意笔记本，
             // 透传别的笔记本会让内核按该笔记本路由 blocktree 而查不到块。
-            this.enqueue(id, item.dataset.type === "search-item" ? "" : this.lastRefSearchNotebook);
+            this.enqueue(id, isSearchItem(item) ? "" : this.lastRefSearchNotebook);
         }
+    }
+
+    /** 列表项所属面板是否启用了面包屑 */
+    private surfaceEnabled(item: HTMLElement): boolean {
+        return isSearchItem(item) ? this.settings.searchList : this.settings.refList;
+    }
+
+    /**
+     * 配置变更后重画：缓存里的 HTML 由旧配置生成，必须清空；
+     * 已处理标记记在 DOM 属性上，也要显式清掉再重新处理。
+     */
+    private repaint() {
+        this.crumbCache.clear();
+        document.querySelectorAll(ITEM_SELECTOR).forEach((el) => {
+            const item = el as HTMLElement;
+            item.querySelectorAll(`.${CRUMB_CLASS}`).forEach((crumb) => crumb.remove());
+            delete item.dataset[DATASET_DONE];
+            delete item.dataset[DATASET_MOUNTED];
+            this.processItems(new Set<HTMLElement>([item]));
+        });
     }
 
     private enqueue(id: string, notebook: string) {
@@ -263,7 +400,7 @@ export default class RefCrumbs extends Plugin {
         item.dataset[DATASET_MOUNTED] = "1";
         const crumb = document.createElement("span");
         crumb.innerHTML = html;
-        if (item.dataset.type === "search-item") {
+        if (isSearchItem(item)) {
             crumb.className = `${CRUMB_CLASS} ${CRUMB_SEARCH_CLASS}`;
             const paths = item.querySelectorAll(".b3-list-item__meta--ellipsis");
             const path = paths.length > 0 ? paths[paths.length - 1] : null;

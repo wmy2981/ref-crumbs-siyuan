@@ -1,3 +1,13 @@
 {
-  "pluginName": "Ref Crumbs"
+  "pluginName": "Ref Crumbs",
+  "refListTitle": "Breadcrumbs in the block reference list",
+  "refListDesc": "Show the heading chain of each block in the block reference search list",
+  "searchListTitle": "Breadcrumbs in the search panel",
+  "searchListDesc": "Show the heading chain of each block in the search panel result list",
+  "markerTitle": "Heading level marker",
+  "markerDesc": "Symbol shown before each heading name",
+  "separatorTitle": "Heading level separator",
+  "separatorDesc": "Symbol shown between two heading levels",
+  "markerNone": "(none)",
+  "saveFailed": "Failed to save settings"
 }

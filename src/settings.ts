@@ -7,6 +7,10 @@
 export type MarkerStyle = "hash" | "h" | "hSub" | "none";
 
 export interface ISettings {
+    /** 引用搜索列表（`((`）显示面包屑 */
+    refList: boolean;
+    /** 搜索面板结果列表显示面包屑 */
+    searchList: boolean;
     /** 标题层级标识符号 */
     marker: MarkerStyle;
     /** 标题层级之间的连接符号 */
@@ -14,6 +18,8 @@ export interface ISettings {
 }
 
 export const DEFAULT_SETTINGS: ISettings = {
+    refList: true,
+    searchList: false,
     marker: "hash",
     separator: "·",
 };
@@ -33,6 +39,12 @@ export const mergeSettings = (stored: unknown): ISettings => {
         return settings;
     }
     const data = stored as Partial<ISettings>;
+    if (typeof data.refList === "boolean") {
+        settings.refList = data.refList;
+    }
+    if (typeof data.searchList === "boolean") {
+        settings.searchList = data.searchList;
+    }
     if (MARKER_CHOICES.indexOf(data.marker) > -1) {
         settings.marker = data.marker;
     }

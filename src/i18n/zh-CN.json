@@ -1,3 +1,13 @@
 {
-  "pluginName": "引用块搜索列表显示面包屑"
+  "pluginName": "引用块搜索列表显示面包屑",
+  "refListTitle": "引用列表显示面包屑",
+  "refListDesc": "在块引用搜索列表中显示每个块的标题层级",
+  "searchListTitle": "搜索列表显示面包屑",
+  "searchListDesc": "在搜索面板结果列表中显示每个块的标题层级",
+  "markerTitle": "标题层级标识符号",
+  "markerDesc": "显示在每个标题名前的符号",
+  "separatorTitle": "标题层级连接符号",
+  "separatorDesc": "显示在两个标题层级之间的符号",
+  "markerNone": "（无）",
+  "saveFailed": "设置保存失败"
 }
