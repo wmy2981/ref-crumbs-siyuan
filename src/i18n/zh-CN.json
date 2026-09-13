@@ -1,5 +1,5 @@
 {
-  "pluginName": "引用块搜索列表显示面包屑",
+  "pluginName": "引用面包屑",
   "refListTitle": "引用列表显示面包屑",
   "refListDesc": "在块引用搜索列表中显示每个块的标题层级",
   "searchListTitle": "搜索列表显示面包屑",
