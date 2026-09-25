@@ -4,20 +4,21 @@
 // 仓库地址优先取 GITHUB_REPOSITORY，本地执行时回落到 origin。
 import {execFileSync} from "node:child_process";
 
-// Conventional Commits 类型 -> 说明小节标题，未列出的类型归入 Other Changes
-const SECTION_TITLES = new Map([
-    ["feat", "Features"],
-    ["fix", "Bug Fixes"],
-    ["perf", "Performance"],
-    ["refactor", "Refactoring"],
-    ["docs", "Documentation"],
-    ["build", "Build System"],
-    ["ci", "Continuous Integration"],
-    ["test", "Tests"],
-    ["style", "Styles"],
-    ["chore", "Chores"],
+// Conventional Commits 类型 -> [小节标题前的 emoji, 说明小节标题]，
+// emoji 与该类型的 gitmoji 约定一致；未列出的类型归入 Other Changes
+const SECTIONS = new Map([
+    ["feat", ["✨", "Features"]],
+    ["fix", ["🐛", "Bug Fixes"]],
+    ["perf", ["⚡", "Performance"]],
+    ["refactor", ["♻️", "Refactoring"]],
+    ["docs", ["📝", "Documentation"]],
+    ["build", ["📦", "Build System"]],
+    ["ci", ["👷", "Continuous Integration"]],
+    ["test", ["✅", "Tests"]],
+    ["style", ["💄", "Styles"]],
+    ["chore", ["🔧", "Chores"]],
 ]);
-const OTHER_TITLE = "Other Changes";
+const OTHER_SECTION = ["📌", "Other Changes"];
 
 // 版本号提交等无信息量的记录
 const IGNORED_SUBJECTS = [
@@ -57,15 +58,18 @@ for (const {sha, subject} of commits) {
     const type = conventional ? conventional[1] : "";
     const scope = conventional ? conventional[2] : "";
     const description = conventional ? conventional[3] : subject;
-    const title = SECTION_TITLES.get(type) || OTHER_TITLE;
+    const [emoji, title] = SECTIONS.get(type) || OTHER_SECTION;
+    const heading = `${emoji} ${title}`;
     const link = `([${sha.slice(0, 7)}](https://github.com/${repository()}/commit/${sha}))`;
     const entry = `- ${scope ? `**${scope}**: ` : ""}${description} ${link}`;
-    sections.set(title, [...(sections.get(title) || []), entry]);
+    sections.set(heading, [...(sections.get(heading) || []), entry]);
 }
 
-const orderedTitles = [...SECTION_TITLES.values(), OTHER_TITLE].filter((title) => sections.has(title));
-if (orderedTitles.length === 0) {
+const orderedHeadings = [...SECTIONS.values(), OTHER_SECTION]
+    .map(([emoji, title]) => `${emoji} ${title}`)
+    .filter((heading) => sections.has(heading));
+if (orderedHeadings.length === 0) {
     console.log("_No notable changes_");
 } else {
-    console.log(orderedTitles.map((title) => `### ${title}\n\n${sections.get(title).join("\n")}`).join("\n\n"));
+    console.log(orderedHeadings.map((heading) => `### ${heading}\n\n${sections.get(heading).join("\n")}`).join("\n\n"));
 }
