@@ -43,8 +43,24 @@ export const isValidMaxLength = (value: unknown): value is number =>
 /** 标识符号候选项，界面文案见设置面板 */
 export const MARKER_CHOICES: MarkerStyle[] = ["hash", "h", "hSub", "none"];
 
-/** 连接符号候选项 */
-export const SEPARATOR_CHOICES = ["·", "/", "-", "~", ">"];
+/**
+ * 连接符号候选项。这里同时充当白名单：取值不在其中就回落默认值，
+ * 因此 `buildCrumbHTML` 可以把它直接拼进 innerHTML —— 不要加入
+ * `<` `&` 这类会破坏标签结构的字符。
+ */
+export const SEPARATOR_CHOICES = [
+    "·",
+    "/",
+    "-",
+    "~",
+    ">",
+    "›",
+    "»",
+    "→",
+    "•",
+    "|",
+    "、",
+];
 
 export const STORAGE_NAME = "settings.json";
 

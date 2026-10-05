@@ -20,7 +20,7 @@ Product handbook/Releases/Retrospectives/  ## Milestone review · ### Sprint 2
 - When the block itself is a heading, it is appended as the last level; turn that option off to keep only the headings above it
 - Keeps the look of the document path, and wraps when the line runs out of room
 - Long heading names can be collapsed with an ellipsis (off by default), level by level, so a long h3 never hides the h2 above it
-- Marker (`##` / `h2` / `H₂` / none), separator (`·` `/` `-` `~` `>`) and the collapse length are configurable
+- Marker (`##` / `h2` / `H₂` / none), separator (`·` `/` `-` `~` `>` `›` `»` `→` `•` `|` `、`) and the collapse length are configurable
 
 ## Install
 
