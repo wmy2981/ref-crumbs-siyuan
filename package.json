@@ -1,6 +1,6 @@
 {
   "name": "ref-crumbs-siyuan",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Show heading breadcrumbs (h2-h6) of each block in the block reference search list and the search panel",
   "main": ".src/index.js",
   "scripts": {
