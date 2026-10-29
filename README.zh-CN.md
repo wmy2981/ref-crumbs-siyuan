@@ -46,6 +46,10 @@
 - 需要思源 3.6.0 及以上版本，支持加密笔记本
 - 纯前端插件：不修改内核，也不需要 SQL 权限
 
+## 集市趋势图表
+
+![集市趋势图表](https://siyuan-bazaar-stats-graph.sr1.cc.cd/api/chart/wmy2981/ref-crumbs-siyuan?metrics=downloads,rating,ratings&range=all&area=true&lang=zh)
+
 ## 构建
 
 ```bash

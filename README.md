@@ -46,6 +46,10 @@ Settings → Bazaar → Ref Crumbs.
 - Requires SiYuan 3.6.0 or later, works with encrypted notebooks
 - Pure frontend plugin: nothing is changed in the kernel and no SQL permission is needed
 
+## Bazaar Stats Graph
+
+![Bazaar stats graph](https://siyuan-bazaar-stats-graph.sr1.cc.cd/api/chart/wmy2981/ref-crumbs-siyuan?metrics=downloads,rating,ratings&range=all&area=true&lang=en)
+
 ## Build
 
 ```bash
