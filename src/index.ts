@@ -122,28 +122,46 @@ export default class RefCrumbs extends Plugin {
     }
 
     /**
-     * 思源 `Setting.open` 构建完面板后会聚焦面板里的第一个 input（见 app/src/plugin/Setting.ts），
-     * 移动端上这次自动聚焦会唤起软键盘，这里在面板打开后立刻把焦点与键盘收掉。
+     * 移动端打开设置面板时不得程序性聚焦 input/textarea。宿主有两处会这么做：`Dialog.bindInput`
+     * 逐个控件先 focus 一次（app/src/dialog/index.ts），`Setting.open` 结尾再聚焦面板里第一个
+     * `input, textarea`（app/src/plugin/Setting.ts）。而 `mobile/index.ts` 重写的
+     * `HTMLElement.prototype.focus` 不判 `isConnected` 就经原生桥接唤起软键盘，键盘触发的 adjustResize
+     * 会改 WebView 高度、整页重排，面板弹出的那一帧就闪旧画面。
+     * `bindInput` 那次 focus 发生在控件插入对话框之前，元素此时还游离在文档外，事后 blur 和按祖先
+     * 节点判断都拦不住，所以这里在打开期间按元素类型接管 `HTMLElement.prototype.focus`，打开结束
+     * 立即还原。用户触碰控件不经过这个重写，照常可输入。
      */
     openSetting() {
-        super.openSetting();
         if (!isMobileLayout()) {
+            super.openSetting();
             return;
         }
-        const focused = document.activeElement as HTMLElement;
-        if (!focused?.closest(".b3-dialog__content")) {
-            return;
+        const proto = HTMLElement.prototype;
+        const originalFocus = proto.focus;
+        proto.focus = function(this: HTMLElement, options?: FocusOptions) {
+            // 对话框容器等非输入控件的聚焦照常放行，不会唤键盘
+            if (!(this instanceof HTMLInputElement || this instanceof HTMLTextAreaElement)) {
+                originalFocus.call(this, options);
+            }
+        };
+        try {
+            super.openSetting();
+        } finally {
+            proto.focus = originalFocus;
         }
-        // 与思源移动端的 activeBlur 同款：Android / 鸿蒙的软键盘需经原生桥接关闭，
-        // 原生侧会在键盘退场后清理焦点，其余平台直接失焦
-        if (window.JSAndroid?.hideKeyboard) {
-            window.JSAndroid.hideKeyboard();
-            return;
+        // 入场过渡（transform/opacity）会临时建层、结束时再拆层，App 的 WebView 在拆层那一帧
+        // 只能提交拆层前的旧纹理，面板正文会残留一帧旧画面。这里在过渡开始前就把面板和正文
+        // 常驻提升为独立图层，入场期间不再建层/拆层；只加图层提示，不动宿主的 transition 与类切换时序。
+        // `Setting.dialog` 运行时存在，当前 npm 包的类型声明里还没有它
+        const dialogElement = (this.setting as Setting & {dialog?: {element?: HTMLElement;};}).dialog?.element;
+        const container = dialogElement?.querySelector(".b3-dialog__container");
+        if (container instanceof HTMLElement) {
+            container.style.setProperty("will-change", "transform");
+            const content = container.querySelector(".b3-dialog__content");
+            if (content instanceof HTMLElement) {
+                content.style.setProperty("will-change", "transform");
+            }
         }
-        if (window.JSHarmony?.hideKeyboard) {
-            window.JSHarmony.hideKeyboard();
-        }
-        focused.blur();
     }
 
     /** 注册思源设置面板，配置经 loadData/saveData 持久化 */
